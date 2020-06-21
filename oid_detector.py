@@ -113,11 +113,11 @@ def run_inference(graph, image_np):
 
 import PIL.Image as Image
 import json
+from tqdm import tqdm
 
-
-img_dir = "/mnt/data/aman/block/block.bootstrap.pytorch/data/vqa/coco/raw/train2014"
-target_dir = "detections_split/"
-dataset_file_dir = "train2014_questions_split/"
+img_dir = "/mnt/data/aman/block/block.bootstrap.pytorch/data/vqa/coco/raw/val2014"
+target_dir = "oid_detections_split_val/"
+dataset_file_dir = "val2014_questions_split/"
 
 def object_detector(i):
     dataset_file = str(i) + ".json"
@@ -130,13 +130,13 @@ def object_detector(i):
 
     with open(dataset_file_dir + dataset_file) as json_file:
         data = json.load(json_file)
-        for d in data:
+        for d in tqdm(data, desc="File : " + str(i)):
             image_id = d["image_id"]
             if str(image_id) in file_result_dict:
                 continue
 
             n = len(str(image_id))
-            filename = "COCO_train2014_" + "0"*(12-n) + str(image_id) + ".jpg"
+            filename = "COCO_val2014_" + "0"*(12-n) + str(image_id) + ".jpg"
 
             image_np = load_image_into_numpy_array(Image.open(os.path.join(img_dir,filename)).convert("RGB"))
             output_dict = run_inference(graph, image_np)
@@ -145,8 +145,8 @@ def object_detector(i):
                                      category_index)
 
             file_result_dict[image_id] = results
-            count += 1
-            print("File " + str(i),count)
+            # count += 1
+            # print("File " + str(i),count)
             if count%10 == 0:
                 with open(target_file,'w') as f:
                     json.dump(file_result_dict,f)
